@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Meal Time with Redux</title>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="/lib/redux.js"></script>
+</head>
+<body>
+  <h1>What you need to do:</h1>
+  <p>
+    <b>Current time:</b>
+    <span id="display-time"></span>
+  </p>
+  <p id="display-meal"></p>
+  <button id="emulate-night">Let's pretend is 00:00:00</button>
+  <button id="emulate-noon">Let's pretend is 12:00:00</button>
+  <script type="text/babel">
+
+    // Extract the createStore method from the Redux library:
+    const { createStore } = Redux
+
+    // Define the initial state of your application:
+    const initialState = {
+      kindOfMeal: null,
+      time: null,
+    }
+
+    // Keep a reference of the HTML DOM elements that will be used to 
+    // display the state or interact with the application:
+    const meal = document.getElementById('display-meal')
+    const time = document.getElementById('display-time')
+    const btnNight = document.getElementById('emulate-night')
+    const btnNoon = document.getElementById('emulate-noon')
+
+    // Define two action types:
+    const SET_MEAL = 'SET_MEAL'
+    const SET_TIME = 'SET_TIME'
+    
+    // Define two action creators:
+    const setMeal = (kindOfMeal) => ({
+        type: SET_MEAL,
+        kindOfMeal,
+    })
+    const setTime = (time) => ({
+      type: SET_TIME,
+      time, 
+    })
+
+    // Define the reducer that will transform the state when SET_TIME 
+    // and/or SET_TIME action types are dispatched:
+    const reducer = (prevState = initialState, action) => {
+      switch (action.type) {
+        case SET_MEAL:
+          return {...prevState,
+            kindOfMeal: action.kindOfMeal,
+          }
+        case SET_TIME:
+          return {
+            ...prevState,
+            time: action.time,
+          }
+        default:
+          return prevState
+      }
+    }
+
+    // Create a new Redux Store:
+    const store = createStore(reducer)
+
+    // Subscribe a callback function to the changes of the store. 
+    // Whenever the store changes this callback will be triggered and it 
+    // will update the view according to the changes in the store:
+    store.subscribe(() => {
+      const nextState = store.getState()
+      const comparison = [
+        { time: '23:00:00', info: 'Too late for dinner!' },
+        { time: '18:00:00', info: 'Dinner time!' },
+        { time: '16:00:00', info: 'Snacks time!' },
+        { time: '12:00:00', info: 'Lunch time!' },
+        { time: '10:00:00', info: 'Brunch time!' },
+        { time: '05:00:00', info: 'Breakfast time!' },
+        { time: '00:00:00', info: 'Too early for breakfast!' },
+      ]
+      time.textContent = nextState.time
+      meal.textContent = comparison.find((condition) => (
+        nextState.time >= condition.time
+      )).info
+    })
+
+    // Add an event listener for the click event for our button that 
+    // will dispatch the SET_TIME action type to set the time to 00:00:00:
+    btnNight.addEventListener('click', () => {
+      const time = new Date('1/1/1 00:00:00')
+      store.dispatch(setTime(time.toTimeString()))
+    })
+
+    // Add an event listener for the click event for our button that 
+    // will dispatch the SET_TIME action type to set the time to 12:00:00:
+    btnNoon.addEventListener('click', () => {
+      const time = new Date('1/1/1 12:00:00')
+      store.dispatch(setTime(time.toTimeString()))
+    })
+
+    // When the application is first started, dispatch an action to set 
+    // the time to the current local time:
+    store.dispatch(setTime(new Date().toTimeString()))
+
+  </script>
+</body>
+</html>
